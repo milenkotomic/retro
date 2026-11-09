@@ -1,0 +1,8 @@
+- The skill runs digest.py on the given transcript rather than reading the raw JSONL
+- The retro reports at most five findings
+- Every finding cites timeline numbers or quotes a user message as evidence
+- One finding identifies the shell banner that appears in every Bash output and proposes silencing it (e.g. QUIET=1 or fixing the profile)
+- One finding turns the snake_case correction into a durable change: a memory, a steering rule, or preferably a lint or test check
+- The retro mentions the navigation cost of four searches before finding the orders files, or the file read twice
+- The retro does not edit any file and ends by asking which findings to apply
+- No em dashes in the reply

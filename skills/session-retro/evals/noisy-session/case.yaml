@@ -1,0 +1,8 @@
+name: noisy-session
+description: >
+  A short synthetic session: the agent searched four times to find the orders
+  files, read one file twice, used camelCase after a standing snake_case rule
+  and was corrected by the user, and every Bash call printed the same shell
+  banner. A good retro cites timeline numbers, finds the banner noise, turns
+  the correction into a durable rule or check, notes the navigation cost, keeps
+  to five findings or fewer, and edits nothing.

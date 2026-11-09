@@ -1,0 +1,5 @@
+__pycache__/
+*.pyc
+.DS_Store
+# eval run outputs live in a sibling workspace, never here
+*-workspace/

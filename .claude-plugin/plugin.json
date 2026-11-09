@@ -1,0 +1,16 @@
+{
+  "name": "retro",
+  "version": "0.1.0",
+  "description": "Retrospectives for Claude Code: find what in the agent's environment slowed a session down, and propose evidence-backed fixes.",
+  "author": {
+    "name": "Milenko Tomic",
+    "url": "https://github.com/milenkotomic"
+  },
+  "homepage": "https://github.com/milenkotomic/retro",
+  "repository": "https://github.com/milenkotomic/retro",
+  "license": "MIT",
+  "keywords": ["retro", "retrospective", "session", "claude-md", "developer-experience"],
+  "experimental": {
+    "evals": "skills/session-retro/evals"
+  }
+}
