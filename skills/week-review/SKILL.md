@@ -77,7 +77,8 @@ delete those folders.
    ```
    - **observations**: 3 to 5 lines, each one a pattern that connects
      sources or a change against the baseline, with the number that shows
-     it. "135 commits to tv-movie-tracker and 14 h of Claude sessions there:
+     it, copied as printed in the summary (see Rules: no derived numbers).
+     "135 commits to tv-movie-tracker and 14 h of Claude sessions there:
      most of the week went to one project" is an observation; "You made 141
      commits" is a restatement of a tile. Spending: name the categories that
      drove a change against the 4-week average and anything overspent or
@@ -97,9 +98,12 @@ delete those folders.
 
 ## Rules
 
-- **Numbers come from the script.** Never compute totals, averages or deltas
-  by hand for the page; if a number is missing, change the script or leave it
-  out.
+- **Numbers come from the script.** Every number on the page, notes
+  included, must appear as is in the `summary` output. Never compute totals,
+  averages, deltas, ratios, percentages or multiples ("40 times its
+  average", "a third of the week") by hand, not even rounded. To compare two
+  printed numbers, quote both ("$412.000 against a $10.000 average"). If a
+  number you need is missing, change the script or leave it out.
 - **Personal only.** Repos are those owned by the user's GitHub account;
   sessions and repos matching `exclude_patterns` are dropped. If something
   work-related slips through, suggest a pattern for the config instead of
