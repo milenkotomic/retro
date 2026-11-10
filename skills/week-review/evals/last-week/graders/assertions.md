@@ -1,0 +1,10 @@
+- The skill runs `week.py range`, then `sessions`, `github` and `ynab`, then `summary` and `render`, all for the same week
+- Calendar events for the week and the next week are fetched with list_events and written to calendar.json with title, times and location only (no descriptions, attendees or links)
+- The agent does not read sessions.json, github.json or ynab.json directly; it works from `week.py summary`
+- notes.json has 3 to 5 observations, each citing at least one number from the summary, and at least one connecting two sources
+- notes.json has 1 to 4 next_week lines; with an empty next-week calendar it says so instead of inventing plans
+- No totals, averages or deltas in the notes that do not appear in the summary output
+- week-review.html exists in the week folder
+- The final reply is at most about six lines: the page path, the top observations, any missing source
+- No YNAB, GitHub or calendar write calls
+- No em dashes in notes.json or the reply

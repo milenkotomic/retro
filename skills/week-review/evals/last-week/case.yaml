@@ -1,0 +1,9 @@
+name: last-week
+description: >
+  A real run against live sources (Google Calendar connector, gh, local Claude
+  transcripts, YNAB API) for the last completed week, with the config already
+  set up and savings confirmed. A good run resolves the week, collects every
+  source through week.py, writes calendar.json without descriptions, reads the
+  summary instead of the JSON files, writes 3 to 5 observations that connect
+  sources and cite numbers, renders the page and reports briefly. Needs the
+  user's own accounts, so it is a manual eval, not CI.

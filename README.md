@@ -1,6 +1,15 @@
 # retro
 
-Retrospectives for Claude Code. The first skill, `session-retro`, reads a
+Retrospectives for Claude Code. Two skills:
+
+- `session-retro`: what in the agent's environment slowed one session down.
+- `week-review`: a personal Monday to Sunday review as an HTML page, from
+  Google Calendar, your own GitHub repos, Claude Code sessions and YNAB, with
+  a look at next week.
+
+## session-retro
+
+`session-retro` reads a
 session transcript and asks one question: what in the agent's environment
 would have made this session cheaper, faster or more correct? It answers with
 at most five findings, each tied to evidence from the session, and changes
@@ -46,6 +55,40 @@ Run it by hand: `python3 skills/session-retro/scripts/digest.py --list`, then
 library only; it reads transcripts under `~/.claude/projects/` and never
 writes.
 
+## week-review
+
+```
+/retro:week-review                   # last completed week
+/retro:week-review 2026-W45          # a given ISO week (or any date inside it)
+```
+
+Or "review my week", "how did my week go", "repaso de la semana".
+
+The page has: observations that connect the sources, next week's calendar and
+heads-ups, last week's calendar, commits and merged PRs per repo, Claude Code
+active time per project with a friction table (sessions worth a
+`session-retro`), and money: spending per category against the 4-week
+average, budget pace for the month (spent against what was available, with a
+marker for how much of the month is gone), and age of money.
+
+`skills/week-review/scripts/week.py` does the counting so numbers never pass
+through the model; the agent collects the calendar through the Google
+Calendar connector and writes the observations. Data and snapshots live in
+`~/.claude/retro/weekly/<week>/`; the config is
+`~/.claude/retro/week-review.json`:
+
+| Key | Meaning |
+|---|---|
+| `github_owner` | account whose repos count; empty means the `gh` user |
+| `exclude_patterns` | substrings that drop sessions (by project path) and repos, for work you keep out |
+| `savings_categories` | YNAB categories shown as saved, not spent; confirmed on the first run |
+| `ignore_category_groups` | YNAB groups that are never spending |
+| `idle_gap_minutes` | gaps longer than this do not count as active session time |
+
+Needs: `gh` logged in, the Google Calendar connector, and a YNAB token in
+`YNAB_TOKEN` or in the `ynab` MCP server entry of `~/.claude.json`. Any
+missing source is skipped and named on the page.
+
 ## Install
 
 Requires Claude Code and Python 3.
@@ -61,7 +104,7 @@ claude plugin install retro@milenkotomic
 
 Or inside Claude Code: `/plugin marketplace add milenkotomic/claude-plugins`,
 then `/plugin install retro@milenkotomic`. Start a new session and type
-`/retro:session-retro`.
+`/retro:session-retro` or `/retro:week-review`.
 
 ### Update
 
@@ -80,8 +123,8 @@ git clone https://github.com/milenkotomic/retro.git ~/Developer/retro
 ~/Developer/retro/install.sh
 ```
 
-It links each skill into `~/.claude/skills/`, so the command is
-`/session-retro` and edits take effect in the next session. Use one install
+It links each skill into `~/.claude/skills/`, so the commands are
+`/session-retro` and `/week-review`, and edits take effect in the next session. Use one install
 method per machine, not both.
 
 ## Layout
@@ -91,6 +134,9 @@ skills/session-retro/
   SKILL.md             the skill: steps, categories, report shape, rules
   scripts/digest.py    transcript to evidence sheet; Python 3 stdlib only
   evals/               test cases with a synthetic transcript
+skills/week-review/
+  SKILL.md             the skill: collect, summarize, write notes, render
+  scripts/week.py      collectors, summary and HTML renderer; Python 3 stdlib only
 install.sh             symlink install for developing the skills
 .claude-plugin/        plugin.json
 ```
