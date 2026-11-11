@@ -1,6 +1,6 @@
 {
   "name": "retro",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "Retrospectives for Claude Code: find what slowed a session down, and review your week across calendar, GitHub, Claude sessions and YNAB.",
   "author": {
     "name": "Milenko Tomic",

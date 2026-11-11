@@ -10,7 +10,8 @@ Usage:
 The sheet has: session facts, the user's messages, a numbered tool timeline,
 and flags (errors, timeouts, denials, repeated calls, re-read files, largest
 outputs, output noise that recurs across calls), plus the steering files that
-were in play. Python 3 standard library only; reads, never writes.
+were in play. Common credential shapes are masked, best effort. Python 3
+standard library only; reads, never writes.
 """
 import argparse
 import collections
@@ -61,8 +62,33 @@ def text_of(content):
     return ""
 
 
+SECRETS = [
+    (re.compile(r"(?i)(authorization\"?\s*[:=]\s*\"?(?:bearer|basic|token)\s+)[^\s\"'\\]+"), r"\1[redacted]"),
+    (re.compile(r"(?i)\b(bearer\s+)[A-Za-z0-9._~+/=-]{16,}"), r"\1[redacted]"),
+    (re.compile(r"\b(?:gh[pousr]_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]{20,}|sk-[A-Za-z0-9_-]{20,}|xox[abprs]-[A-Za-z0-9-]{10,}"
+                r"|AKIA[0-9A-Z]{16}|eyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]+)"), "[redacted]"),
+    (re.compile(r"(?i)\b([a-z0-9_-]*(?:token|secret|password|passwd|api[_-]?key|access[_-]?key)[a-z0-9_-]*\"?\s*[=:]\s*[\"']?)"
+                r"[^\s\"'&\\]{8,}"), r"\1[redacted]"),
+]
+
+
+def redact(s):
+    """Best-effort masking of credentials, so the sheet does not copy them into a new session."""
+    for pat, repl in SECRETS:
+        s = pat.sub(repl, s)
+    return s
+
+
+def inside(path, root):
+    try:
+        path.relative_to(root)
+        return True
+    except ValueError:
+        return False
+
+
 def one_line(s, n):
-    s = re.sub(r"\s+", " ", s or "").strip()
+    s = redact(re.sub(r"\s+", " ", s or "").strip())
     return s if len(s) <= n else s[: n - 1] + "…"
 
 
@@ -110,11 +136,19 @@ def steering(cwd):
             break
         d = d.parent
     files += chain
-    imported = []
+    # Follow an @import only when it stays next to the file that names it or under
+    # ~/.claude. Anything else (a repo's CLAUDE.md pointing at ~/.aws/credentials) is
+    # listed as written and never opened.
+    imported, external = [], []
+    trusted = (home / ".claude").resolve()
     for f in files:
         if f.is_file():
             for m in re.finditer(r"^@(\S+)", f.read_text(errors="ignore"), re.M):
-                imported.append((f.parent / m.group(1)).expanduser())
+                target = (f.parent / Path(m.group(1)).expanduser()).resolve()
+                if inside(target, f.parent.resolve()) or inside(target, trusted):
+                    imported.append(target)
+                else:
+                    external.append(f"- `{one_line(m.group(1), 150)}`: external import in `{f}`, not followed; ask the user before reading it")
     mem = project_folder(cwd) / "memory" / "MEMORY.md"
     out, seen = [], set()
     for f in files + imported + [mem]:
@@ -124,7 +158,7 @@ def steering(cwd):
         seen.add(f)
         lines = f.read_text(errors="ignore").count("\n")
         out.append(f"- `{f}`: {lines} lines")
-    return out
+    return out + sorted(set(external))
 
 
 def digest(path, timeline_cap):

@@ -1,4 +1,4 @@
-#!/usr/bin/env python3 -I
+#!/usr/bin/env python3
 """Collect and render a personal week review (Monday to Sunday).
 
 Usage:
@@ -591,7 +591,7 @@ def calendar_days(events, holidays, start):
         evs = [e for e in events if e["day"] == d]
         hrs = sum(e["hours"] for e in evs)
         body = "".join(
-            f'<div class="e"><span class="mono muted">{"all day" if e["all_day"] else e["start"][11:16]}</span> {E(e.get("summary", "(busy)"))}</div>'
+            f'<div class="e"><span class="mono muted">{"all day" if e["all_day"] else E(e["start"][11:16])}</span> {E(e.get("summary", "(busy)"))}</div>'
             for e in evs)
         if d in hol:
             body = f'<div class="e"><span class="badge">holiday</span> {E(hol[d])}</div>' + body
@@ -601,7 +601,7 @@ def calendar_days(events, holidays, start):
 
 
 def aom_svg(points):
-    pts = [(p["label"], p["value"]) for p in points if p["value"] is not None]
+    pts = [(p["label"], p["value"]) for p in points if isinstance(p["value"], (int, float))]
     if len(pts) < 2:
         return ""
     w, h, pad = 600, 120, 24
@@ -640,7 +640,7 @@ def section_ynab(y, prev):
         tile("Spent this week", m(y["week_total"]),
              f'{"+" if delta >= 0 else ""}{m(delta)} vs 4-week avg {m(y["prior_4w_avg_total"])}'),
         tile("Saved", m(sum(r["amount"] for r in y["saved"])), ", ".join(E(r["category"]) for r in y["saved"]) or "nothing moved"),
-        tile("Age of money", f'{y["age_of_money"]} d',
+        tile("Age of money", f'{E(str(y["age_of_money"]))} d',
              f'{"+" if (y["age_of_money"] or 0) >= aom_prev else ""}{(y["age_of_money"] or 0) - aom_prev} d vs last week'
              if aom_prev is not None else "first snapshot, trend starts next week"),
         tile(f'{y["month"][:7]} so far', m(y["month_spent"]),
@@ -692,9 +692,9 @@ def section_github(g):
         f'<td style="width:40%">{bar(len(cs) / top)}</td></tr>' for r, cs in g["commits"].items())
     det = "".join(
         f'<details><summary>{E(r.split("/")[-1])}: {len(cs)} commits</summary><table>' +
-        "".join(f'<tr><td class="mono muted">{c["date"][5:]}</td><td><a href="{E(c["url"])}">{E(c["message"])}</a></td></tr>' for c in cs) +
+        "".join(f'<tr><td class="mono muted">{E(c["date"][5:])}</td><td><a href="{E(c["url"])}">{E(c["message"])}</a></td></tr>' for c in cs) +
         "</table></details>" for r, cs in g["commits"].items())
-    prs = "".join(f'<li><a href="{E(i["url"])}">{E(i["repo"].split("/")[-1])}#{i["number"]}</a> {E(i["title"])}</li>' for i in merged[:15])
+    prs = "".join(f'<li><a href="{E(i["url"])}">{E(i["repo"].split("/")[-1])}#{E(str(i["number"]))}</a> {E(i["title"])}</li>' for i in merged[:15])
     return (f'<section class="card"><h2>GitHub</h2><div class="tiles">{tiles}</div>'
             f'<table><tr><th>Repo</th><th class="n">Commits</th><th></th></tr>{repos}</table>{det}'
             + (f'<h3>Merged</h3><ul class="notes">{prs}</ul>' if prs else "") +
@@ -722,20 +722,20 @@ def section_sessions(s):
     rows = []
     for p, xs in sorted(per.items(), key=lambda kv: -sum(x["active_min"] for x in kv[1])):
         mins = sum(x["active_min"] for x in xs)
-        titles = "".join(f'<li><span class="mono muted">{x["start"][5:10]} {x["id"]}</span> {E(x["title"])}</li>' for x in xs)
+        titles = "".join(f'<li><span class="mono muted">{E(x["start"][5:10])} {E(x["id"])}</span> {E(x["title"])}</li>' for x in xs)
         rows.append(f'<tr><td><details><summary class="mono">{E(p)}</summary><ul class="notes">{titles}</ul></details></td>'
                     f'<td class="n">{len(xs)}</td><td class="n">{mins / 60:.1f} h</td><td style="width:30%">{bar(mins / top)}</td></tr>')
     rough = [x for x in sorted(live, key=lambda x: -(x["corrections"] * 3 + x["denials"] * 2 + x["errors"]))
              if x["corrections"] or x["denials"] or x["errors"] > 3][:6]
     fr = "".join(
-        f'<tr><td><span class="mono muted">{x["id"]}</span> {E(x["title"])}<div class="mono muted">{E(x["project"])}</div></td>'
+        f'<tr><td><span class="mono muted">{E(x["id"])}</span> {E(x["title"])}<div class="mono muted">{E(x["project"])}</div></td>'
         f'<td class="n">{x["corrections"]}</td><td class="n">{x["errors"]}</td><td class="n">{x["denials"]}</td></tr>' for x in rough)
     friction = (f'<h3>Friction (worth a /retro:session-retro &lt;id&gt;)</h3><table><tr><th>Session</th><th class="n">Corrections</th>'
                 f'<th class="n">Errors</th><th class="n">Denials</th></tr>{fr}</table>'
                 '<p class="muted">Corrections are a keyword heuristic on your messages; treat them as a hint.</p>') if fr else ""
     autos = collections.Counter(x["project"] for x in auto)
     au = ("<h3>Automated runs</h3><p>" + ", ".join(f'<span class="mono">{E(p)}</span> {n}' for p, n in autos.most_common()) + "</p>") if autos else ""
-    exc = f'<p class="muted">{s["excluded"]} sessions left out by exclude patterns.</p>' if s.get("excluded") else ""
+    exc = f'<p class="muted">{E(str(s["excluded"]))} sessions left out by exclude patterns.</p>' if s.get("excluded") else ""
     return (f'<section class="card"><h2>Claude Code</h2><div class="tiles">{tiles}</div>'
             f'<table><tr><th>Project</th><th class="n">Sessions</th><th class="n">Active</th><th></th></tr>{"".join(rows)}</table>'
             f'{friction}{au}{exc}</section>')
@@ -805,6 +805,9 @@ def main():
     ap.add_argument("--week")
     ap.add_argument("--no-open", action="store_true")
     a = ap.parse_args()
+    os.umask(0o077)  # the data folder holds finances and session titles: owner only
+    HOME.mkdir(parents=True, exist_ok=True)
+    HOME.chmod(0o700)
     week = week_of(a.week)
     cfg = load_config()
     if a.command == "range":
